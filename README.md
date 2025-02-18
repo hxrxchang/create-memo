@@ -4,6 +4,10 @@
 
 Creates a file with the current timestamp while simultaneously archiving files older than one month and deleting empty files.
 
+## Install
+
+`go install github.com/hxrxchang/create-memo`
+
 ## usage
 
 ### Create a file in ~/memo with the default extension (md)
