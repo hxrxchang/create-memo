@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/user"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -16,36 +15,43 @@ import (
 var timestampRegex = regexp.MustCompile(`^(\d{4})(\d{2})(\d{2})\d{6}\.(\w+)$`)
 
 func main() {
-	path := flag.String("path", "memo", "memo directory path")
+	path := flag.String("path", "~/memo", "memo directory path")
 	ext := flag.String("ext", "md", "file extension for new memo (default: md)")
 	flag.Parse()
 
-	memoDir := getMemoDir(*path)
-
-	err := archiveOldFiles(memoDir, *ext)
+	expandedPath, err := expandPath(*path)
+	err = checkDirExitsOrCreate(expandedPath)
 	if err != nil {
-		log.Fatalf("Failed to archive old files: %v", err)
+		log.Fatalf("%v", err)
 	}
 
-	err = createNewMemo(memoDir, *ext)
+	err = archiveOldFiles(expandedPath, *ext)
 	if err != nil {
-		log.Fatalf("Failed to create new memo: %v", err)
+		log.Fatalf("%v", err)
+	}
+
+	err = createNewMemo(expandedPath, *ext)
+	if err != nil {
+		log.Fatalf("%v", err)
 	}
 }
 
-func getMemoDir(path string) string {
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatalf("Failed to get current user: %v", err)
+func expandPath(path string) (string, error) {
+	if path[:2] == "~/" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("Failed to get home directory: %v", err)
+		}
+		return filepath.Join(home, path[2:]), nil
 	}
+	return path, nil
+}
 
-	memoDir := filepath.Join(usr.HomeDir, path)
-
-	if err := os.MkdirAll(memoDir, os.ModePerm); err != nil {
-		log.Fatalf("Failed to create directory %s: %v", memoDir, err)
+func checkDirExitsOrCreate(path string) error {
+	if err := os.MkdirAll(path, os.ModePerm); err != nil {
+		return fmt.Errorf("Failed to create directory %s: %v", path, err)
 	}
-
-	return memoDir
+	return nil
 }
 
 // 1ヶ月以上前のファイルを YYYY/MM に移動（空のファイルは削除）
@@ -65,7 +71,7 @@ func archiveOldFiles(memoDir, ext string) error {
 		name := file.Name()
 
 		matches := timestampRegex.FindStringSubmatch(name)
-		if matches == nil || matches[4] != ext {
+		if matches == nil {
 			continue
 		}
 
@@ -85,7 +91,6 @@ func archiveOldFiles(memoDir, ext string) error {
 		fileTime := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 
 		oldPath := filepath.Join(memoDir, name)
-
 		// ファイルが空なら削除
 		if isEmptyFile(oldPath) {
 			if err := os.Remove(oldPath); err != nil {
