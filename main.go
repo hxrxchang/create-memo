@@ -20,6 +20,10 @@ func main() {
 	flag.Parse()
 
 	expandedPath, err := expandPath(*path)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+
 	err = checkDirExitsOrCreate(expandedPath)
 	if err != nil {
 		log.Fatalf("%v", err)
