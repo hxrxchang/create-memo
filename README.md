@@ -6,7 +6,7 @@ Creates a file with the current timestamp while simultaneously archiving files o
 
 ## Install
 
-`go install github.com/hxrxchang/create-memo`
+`go install github.com/hxrxchang/create-memo/cmd/cm@latest`
 
 ## usage
 
