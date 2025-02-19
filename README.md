@@ -13,23 +13,23 @@ Creates a file with the current timestamp while simultaneously archiving files o
 ### Create a file in ~/memo with the default extension (md)
 
 ```sh
-create-memo
+cm
 ```
 
 ### Create a file with the specified extension (txt)
 
 ```sh
-create-memo -ext txt
+cm -ext txt
 ```
 
 ### Specify the directory to save the file
 
 ```sh
-create-memo -path ~/Documents/memos
+cm -path ~/Documents/memos
 ```
 
 ### Create a file in the specified directory with the txt extension
 
 ```sh
-create-memo -path ~/Documents/memos -ext txt
+cm -path ~/Documents/memos -ext txt
 ```
